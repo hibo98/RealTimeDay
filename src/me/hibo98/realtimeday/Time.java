@@ -21,7 +21,9 @@ public class Time {
             rtdWorlds = Bukkit.getWorlds();
         } else {
             for (String world : config.getStringList("rtd-worlds")) {
-                rtdWorlds.add(Bukkit.getWorld(world));
+                World w = Bukkit.getWorld(world);
+                if (w != null) continue;
+                rtdWorlds.add(w);
             }
         }
         setupWorlds(rtdWorlds);
