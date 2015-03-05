@@ -5,16 +5,18 @@ import java.io.IOException;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class RealTimeDay extends JavaPlugin {
 
     private static RealTimeDay instance;
+    public static FileConfiguration config;
 
     @Override
     public void onEnable() {
-        RealTimeDay.instance = this;
-        File configFile = new File("plugins/RealTimeDay/", "config.yml");
+        instance = this;
+        File configFile = new File(getDataFolder(), "config.yml");
         Setup.setupConfig();
         if (!configFile.exists()) {
             try {
@@ -28,6 +30,8 @@ public class RealTimeDay extends JavaPlugin {
         }
         try {
             this.getConfig().load(configFile);
+            this.getConfig().save(configFile);
+            RealTimeDay.config = getConfig();
         } catch (IOException | InvalidConfigurationException ex) {
             RealTimeDay.error(ex);
         }
@@ -36,7 +40,7 @@ public class RealTimeDay extends JavaPlugin {
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
-        Time.setup(this.getConfig());
+        Time.setup();
     }
 
     @Override
@@ -61,7 +65,7 @@ public class RealTimeDay extends JavaPlugin {
     }
 
     public static RealTimeDay getInstance() {
-        return RealTimeDay.instance;
+        return instance;
     }
 
 }
