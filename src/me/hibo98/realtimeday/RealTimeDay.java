@@ -67,5 +67,4 @@ public class RealTimeDay extends JavaPlugin {
     public static RealTimeDay getInstance() {
         return instance;
     }
-
 }

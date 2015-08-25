@@ -9,77 +9,78 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 public class Time {
-    
+
     private static List<World> rtdWorlds = new ArrayList();
     private static int scheduler = 0;
     private static boolean started = false;
-    
+
     public static void setup() {
         if (RealTimeDay.config.getBoolean("rtd-all-worlds")) {
-            setupWorlds(Bukkit.getWorlds());
             rtdWorlds = Bukkit.getWorlds();
         } else {
             for (String world : RealTimeDay.config.getStringList("rtd-worlds")) {
                 World w = Bukkit.getWorld(world);
-                if (w == null) continue;
+                if (w == null) {
+                    continue;
+                }
                 rtdWorlds.add(w);
             }
         }
         setupWorlds(rtdWorlds);
         setupScheduler();
     }
-    
+
     private static void setupWorlds(List<World> worlds) {
         for (World world : worlds) {
             world.setGameRuleValue("doDaylightCycle", "false");
             world.setTime(0);
         }
     }
-    
+
     private static void setWorldsTime(Integer ticks) {
         for (World world : rtdWorlds) {
             world.setGameRuleValue("doDaylightCycle", "false");
             world.setTime(ticks);
         }
     }
-    
+
     private static void setupScheduler() {
         scheduler = Bukkit.getScheduler().scheduleSyncRepeatingTask(RealTimeDay.getInstance(), new Runnable() {
             @Override
             public void run() {
                 started = true;
                 Integer[] time = getSystemTime();
-                int TTime = convertTime(time[0], time[1]);
-                setWorldsTime(TTime);
+                setWorldsTime(convertTime(time));
             }
         }, 0, (20 * 60 * RealTimeDay.config.getInt("sync-intervall")));
     }
-    
+
     private static Integer[] getSystemTime() {
         Date date = new Date();
         Calendar calendar = GregorianCalendar.getInstance();
         calendar.setTime(date);
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        int minute = calendar.get(Calendar.MINUTE);
-        Integer[] time = new Integer[]{hour, minute};
+        Integer[] time = new Integer[]{calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)};
         return time;
     }
-    
-    private static int convertTime(Integer hour, Integer minute) {
-        int TMinute = (int) (83 * (round(minute, 5)) / 5);
-        int THour;
-        if (hour >= 6) {
-            THour = (hour - 6) * 1000;
-        } else {
-            THour = ((hour + 24) - 6) * 1000;
+
+    private static int convertTime(Integer[] data) {
+        ArrayList<RealTimeData> al = RealTimeData.getByMonth(data[2]);
+        for (RealTimeData rtd : al) {
+            if (rtd.getBeginDate() <= data[3] && data[3] <= rtd.getEndDate()) {
+                if (data[0] == rtd.getAufgang() && data[1] == 0) {
+                    return 0;
+                } else if (data[0] > rtd.getAufgang() && data[0] < rtd.getUntergang()) {
+                    return (int) (((data[0] - rtd.getAufgang()) * 60 + data[1]) * rtd.getTPMDay());
+                } else if (data[0] == rtd.getUntergang() && data[1] == 0) {
+                    return 12000;
+                } else {
+                    return (int) (((data[0] - rtd.getAufgang()) * 60 + data[1]) * rtd.getTPMNight());
+                }
+            }
         }
-        return THour + TMinute;
+        return 0;
     }
-    
-    private static double round(double num, int multipleOf) {
-        return Math.floor((num + (double) multipleOf / 2) / multipleOf) * multipleOf;
-    }
-    
+
     public static void stop() {
         if (started) {
             Bukkit.getScheduler().cancelTask(scheduler);
