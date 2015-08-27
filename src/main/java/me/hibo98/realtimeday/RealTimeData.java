@@ -65,7 +65,7 @@ public enum RealTimeData {
         return endDate;
     }
         
-    public static ArrayList getByMonth(int id) {
+    public static ArrayList<RealTimeData> getByMonth(int id) {
         ArrayList<RealTimeData> al = new ArrayList();
         for (RealTimeData rtd : values()) {
             if (rtd.month == id) al.add(rtd);

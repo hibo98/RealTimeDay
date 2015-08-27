@@ -1,0 +1,21 @@
+defaultTasks 'clean', 'build'
+
+apply plugin: 'java'
+
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+def pluginYml = file('src/main/resources/plugin.yml')
+pluginYml.eachLine {
+    if (!it.startsWith('version:')) {return}
+    version = it.substring(9)
+}
+
+repositories {
+    maven {
+        url "https://hub.spigotmc.org/nexus/content/groups/public/"
+    }
+}
+
+dependencies {
+    compile group: 'org.spigotmc', name: 'spigot-api', version: '1.8.8-R0.1-SNAPSHOT', ext: 'jar'
+}
