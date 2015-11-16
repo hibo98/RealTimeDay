@@ -7,12 +7,12 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.scheduler.BukkitTask;
 
 public class Time {
 
     private static List<World> rtdWorlds = new ArrayList();
-    private static int scheduler = 0;
-    private static boolean started = false;
+    private static BukkitTask scheduler;
 
     public static void setup() {
         if (RealTimeDay.config.getBoolean("rtd-all-worlds")) {
@@ -26,12 +26,12 @@ public class Time {
                 rtdWorlds.add(w);
             }
         }
-        setupWorlds(rtdWorlds);
+        setupWorlds();
         setupScheduler();
     }
 
-    private static void setupWorlds(List<World> worlds) {
-        for (World world : worlds) {
+    private static void setupWorlds() {
+        for (World world : rtdWorlds) {
             world.setGameRuleValue("doDaylightCycle", "false");
             world.setTime(0);
         }
@@ -45,10 +45,9 @@ public class Time {
     }
 
     private static void setupScheduler() {
-        scheduler = Bukkit.getScheduler().scheduleSyncRepeatingTask(RealTimeDay.getInstance(), new Runnable() {
+        scheduler = Bukkit.getScheduler().runTaskTimerAsynchronously(RealTimeDay.getInstance(), new Runnable() {
             @Override
             public void run() {
-                started = true;
                 Integer[] time = getSystemTime();
                 setWorldsTime(convertTime(time));
             }
@@ -82,11 +81,11 @@ public class Time {
     }
 
     public static void stop() {
-        if (started) {
-            Bukkit.getScheduler().cancelTask(scheduler);
-            for (World world : rtdWorlds) {
-                world.setGameRuleValue("doDaylightCycle", "true");
-            }
+        if (scheduler != null) {
+            scheduler.cancel();
+        }
+        for (World world : rtdWorlds) {
+            world.setGameRuleValue("doDaylightCycle", "true");
         }
     }
 }
