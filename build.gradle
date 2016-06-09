@@ -17,5 +17,5 @@ repositories {
 }
 
 dependencies {
-    compile group: 'org.spigotmc', name: 'spigot-api', version: '1.9-R0.1-SNAPSHOT', ext: 'jar'
+    compile group: 'org.spigotmc', name: 'spigot-api', version: '1.10-R0.1-SNAPSHOT', ext: 'jar'
 }

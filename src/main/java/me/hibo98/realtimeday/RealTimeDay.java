@@ -11,7 +11,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class RealTimeDay extends JavaPlugin {
 
     private static RealTimeDay instance;
-    public static FileConfiguration config;
 
     @Override
     public void onEnable() {
@@ -20,24 +19,23 @@ public class RealTimeDay extends JavaPlugin {
         Setup.setupConfig();
         if (!configFile.exists()) {
             try {
-                this.getConfig().save(configFile);
+                getConfig().save(configFile);
             } catch (IOException ex) {
                 RealTimeDay.error(ex);
             }
             RealTimeDay.warning("Please Configure the RealTimeDay Plugin!");
-            Bukkit.getPluginManager().disablePlugin(this);
+            Bukkit.getPluginManager().disablePlugin(instance);
             return;
         }
         try {
-            this.getConfig().load(configFile);
-            this.getConfig().save(configFile);
-            RealTimeDay.config = getConfig();
+            getConfig().load(configFile);
+            getConfig().save(configFile);
         } catch (IOException | InvalidConfigurationException ex) {
             RealTimeDay.error(ex);
         }
-        if (!this.getConfig().getBoolean("real-time-day")) {
+        if (!getConfig().getBoolean("real-time-day")) {
             RealTimeDay.warning("Please Configure the RealTimeDay Plugin!");
-            Bukkit.getPluginManager().disablePlugin(this);
+            Bukkit.getPluginManager().disablePlugin(instance);
             return;
         }
         Time.setup();
@@ -66,5 +64,9 @@ public class RealTimeDay extends JavaPlugin {
 
     public static RealTimeDay getInstance() {
         return instance;
+    }
+    
+    public static FileConfiguration getCfg() {
+        return instance.getConfig();
     }
 }

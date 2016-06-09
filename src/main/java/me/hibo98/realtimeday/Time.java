@@ -15,10 +15,10 @@ public class Time {
     private static BukkitTask scheduler;
 
     public static void setup() {
-        if (RealTimeDay.config.getBoolean("rtd-all-worlds")) {
+        if (RealTimeDay.getCfg().getBoolean("rtd-all-worlds")) {
             rtdWorlds = Bukkit.getWorlds();
         } else {
-            for (String world : RealTimeDay.config.getStringList("rtd-worlds")) {
+            for (String world : RealTimeDay.getCfg().getStringList("rtd-worlds")) {
                 World w = Bukkit.getWorld(world);
                 if (w == null) {
                     continue;
@@ -51,7 +51,7 @@ public class Time {
                 Integer[] time = getSystemTime();
                 setWorldsTime(convertTime(time));
             }
-        }, 0, (20 * 60 * RealTimeDay.config.getInt("sync-intervall")));
+        }, 0, (20 * 60 * RealTimeDay.getCfg().getInt("sync-intervall")));
     }
 
     private static Integer[] getSystemTime() {

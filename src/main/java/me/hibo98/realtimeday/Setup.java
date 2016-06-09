@@ -6,7 +6,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 public class Setup {
 
     public static void setupConfig() {
-        FileConfiguration c = RealTimeDay.getInstance().getConfig();
+        FileConfiguration c = RealTimeDay.getCfg();
         c.options().header("Config File of RealTimeDay:");
         ArrayList<String> defaultworld = new ArrayList<>();
         defaultworld.add("world");
