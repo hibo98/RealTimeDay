@@ -23,8 +23,6 @@ public class RealTimeDay extends JavaPlugin {
             } catch (IOException ex) {
                 RealTimeDay.error(ex);
             }
-            RealTimeDay.warning("Please Configure the RealTimeDay Plugin!");
-            Bukkit.getPluginManager().disablePlugin(instance);
             return;
         }
         try {
@@ -34,7 +32,6 @@ public class RealTimeDay extends JavaPlugin {
             RealTimeDay.error(ex);
         }
         if (!getConfig().getBoolean("real-time-day")) {
-            RealTimeDay.warning("Please Configure the RealTimeDay Plugin!");
             Bukkit.getPluginManager().disablePlugin(instance);
             return;
         }

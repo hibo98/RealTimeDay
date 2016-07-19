@@ -2,7 +2,6 @@ package me.hibo98.realtimeday;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import org.bukkit.Bukkit;
@@ -11,81 +10,62 @@ import org.bukkit.scheduler.BukkitTask;
 
 public class Time {
 
-    private static List<World> rtdWorlds = new ArrayList();
+    private static List<World> rtdWorlds = new ArrayList<>();
     private static BukkitTask scheduler;
 
     public static void setup() {
         if (RealTimeDay.getCfg().getBoolean("rtd-all-worlds")) {
             rtdWorlds = Bukkit.getWorlds();
         } else {
-            for (String world : RealTimeDay.getCfg().getStringList("rtd-worlds")) {
-                World w = Bukkit.getWorld(world);
-                if (w == null) {
-                    continue;
-                }
+            RealTimeDay.getCfg().getStringList("rtd-worlds").stream().map((world) -> Bukkit.getWorld(world)).filter((w) -> (w != null)).forEach((w) -> {
                 rtdWorlds.add(w);
-            }
+            });
         }
-        setupWorlds();
+        if (rtdWorlds.isEmpty()) {
+            RealTimeDay.error("RealTimeDay is configured for 0 worlds");
+            Bukkit.getPluginManager().disablePlugin(RealTimeDay.getInstance());
+        }
         setupScheduler();
     }
 
-    private static void setupWorlds() {
-        for (World world : rtdWorlds) {
-            world.setGameRuleValue("doDaylightCycle", "false");
-            world.setTime(0);
-        }
-    }
-
     private static void setWorldsTime(Integer ticks) {
-        for (World world : rtdWorlds) {
+        rtdWorlds.stream().forEach((world) -> {
             world.setGameRuleValue("doDaylightCycle", "false");
             world.setTime(ticks);
-        }
+        });
     }
 
     private static void setupScheduler() {
-        scheduler = Bukkit.getScheduler().runTaskTimerAsynchronously(RealTimeDay.getInstance(), new Runnable() {
-            @Override
-            public void run() {
-                Integer[] time = getSystemTime();
-                setWorldsTime(convertTime(time));
-            }
+        scheduler = Bukkit.getScheduler().runTaskTimerAsynchronously(RealTimeDay.getInstance(), () -> {
+            setWorldsTime(convertTime(getSystemTime()));
         }, 0, (20 * 60 * RealTimeDay.getCfg().getInt("sync-intervall")));
     }
 
-    private static Integer[] getSystemTime() {
-        Date date = new Date();
+    public static Calendar getSystemTime() {
         Calendar calendar = GregorianCalendar.getInstance();
-        calendar.setTime(date);
-        Integer[] time = new Integer[]{calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)};
-        return time;
+        calendar.setTimeInMillis(System.currentTimeMillis());
+        return calendar;
     }
 
-    private static int convertTime(Integer[] data) {
-        ArrayList<RealTimeData> al = RealTimeData.getByMonth(data[2]);
-        for (RealTimeData rtd : al) {
-            if (rtd.getBeginDate() <= data[3] && data[3] <= rtd.getEndDate()) {
-                if (data[0] == rtd.getAufgang() && data[1] == 0) {
-                    return 0;
-                } else if (data[0] > rtd.getAufgang() && data[0] < rtd.getUntergang()) {
-                    return (int) (((data[0] - rtd.getAufgang()) * 60 + data[1]) * rtd.getTPMDay());
-                } else if (data[0] == rtd.getUntergang() && data[1] == 0) {
-                    return 12000;
-                } else {
-                    return (int) (((data[0] - rtd.getAufgang()) * 60 + data[1]) * rtd.getTPMNight());
-                }
-            }
+    private static int convertTime(Calendar c) {
+        RealTimeData rtd = RealTimeData.getByMonth(c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
+        if (rtd == null || (c.get(Calendar.HOUR_OF_DAY) == rtd.getAufgang() && c.get(Calendar.MINUTE) == 0)) {
+            return 0;
+        } else if (c.get(Calendar.HOUR_OF_DAY) > rtd.getAufgang() && c.get(Calendar.HOUR_OF_DAY) < rtd.getUntergang()) {
+            return (int) (((c.get(Calendar.HOUR_OF_DAY) - rtd.getAufgang()) * 60 + c.get(Calendar.MINUTE)) * rtd.getTPMDay());
+        } else if (c.get(Calendar.HOUR_OF_DAY) == rtd.getUntergang() && c.get(Calendar.MINUTE) == 0) {
+            return 12000;
+        } else {
+            return (int) (((c.get(Calendar.HOUR_OF_DAY) - rtd.getAufgang()) * 60 + c.get(Calendar.MINUTE)) * rtd.getTPMNight());
         }
-        return 0;
     }
 
     public static void stop() {
         if (scheduler != null) {
             scheduler.cancel();
         }
-        for (World world : rtdWorlds) {
+        rtdWorlds.stream().forEach((world) -> {
             world.setGameRuleValue("doDaylightCycle", "true");
-        }
+        });
     }
 }
