@@ -3,6 +3,7 @@ package me.hibo98.realtimeday;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -21,7 +22,7 @@ public class RealTimeDay extends JavaPlugin {
             try {
                 getConfig().save(configFile);
             } catch (IOException ex) {
-                RealTimeDay.error(ex);
+                Logger.getLogger(RealTimeDay.class.getName()).log(Level.SEVERE, "Error while saving config for the first time", ex);
             }
             return;
         }
@@ -29,7 +30,7 @@ public class RealTimeDay extends JavaPlugin {
             getConfig().load(configFile);
             getConfig().save(configFile);
         } catch (IOException | InvalidConfigurationException ex) {
-            RealTimeDay.error(ex);
+            Logger.getLogger(RealTimeDay.class.getName()).log(Level.SEVERE, "Error while loading config", ex);
         }
         if (!getConfig().getBoolean("real-time-day")) {
             Bukkit.getPluginManager().disablePlugin(instance);
@@ -41,22 +42,6 @@ public class RealTimeDay extends JavaPlugin {
     @Override
     public void onDisable() {
         Time.stop();
-    }
-
-    public static void info(Object msg) {
-        instance.getLogger().log(Level.INFO, "{0}", msg);
-    }
-
-    public static void fine(Object msg) {
-        instance.getLogger().log(Level.FINE, "{0}", msg);
-    }
-
-    public static void warning(Object msg) {
-        instance.getLogger().log(Level.WARNING, "{0}", msg);
-    }
-
-    public static void error(Object msg) {
-        instance.getLogger().log(Level.SEVERE, "{0}", msg);
     }
 
     public static RealTimeDay getInstance() {

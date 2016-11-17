@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.scheduler.BukkitTask;
@@ -22,7 +24,7 @@ public class Time {
             });
         }
         if (rtdWorlds.isEmpty()) {
-            RealTimeDay.error("RealTimeDay is configured for 0 worlds");
+            Logger.getLogger(Time.class.getName()).log(Level.INFO, "RealTimeDay is configured for 0 worlds");
             Bukkit.getPluginManager().disablePlugin(RealTimeDay.getInstance());
         }
         setupScheduler();
